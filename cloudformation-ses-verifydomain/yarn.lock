@@ -310,7 +310,22 @@ aws-sdk-mock@^4.2.0:
     sinon "^6.0.0"
     traverse "^0.6.6"
 
-aws-sdk@^2.260.1, aws-sdk@^2.348.0:
+aws-sdk@^2.260.1:
+  version "2.353.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.353.0.tgz#3c809d2b02834d892a3f5c3f1171273b336e5692"
+  integrity sha512-c5MwJhfcHwA2lC1Wq9csQvP9gz8dVGpZ64s5j9f/sWY6eZiDCQ6OWjxj+VJfpnCmfxyC/pdZO7JDGwems7dqIQ==
+  dependencies:
+    buffer "4.9.1"
+    events "1.1.1"
+    ieee754 "1.1.8"
+    jmespath "0.15.0"
+    querystring "0.2.0"
+    sax "1.2.1"
+    url "0.10.3"
+    uuid "3.1.0"
+    xml2js "0.4.19"
+
+aws-sdk@^2.348.0:
   version "2.348.0"
   resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.348.0.tgz#69c5b6dd77a5eac85b54bf7cc1640c19d762d3ee"
   integrity sha512-TfguapuOAwk7EG8zhYJPjkCaF4tyGjfgcXLkYbWbuS4O6E8pn0x2K5Yt1KXwLiWxG0fzKCLiiaNA5H7bKAP4YQ==
