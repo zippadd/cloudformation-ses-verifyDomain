@@ -10,5 +10,11 @@
     "url": "https://github.com/zippadd/aws-custom-resources/issues"
   },
   "license": "MIT",
-  "private": false
+  "private": false,
+  "scripts": {
+    "test": "lerna bootstrap && lerna exec 'yarn test'"
+  },
+  "devDependencies": {
+    "lerna": "^3.4.3"
+  }
 }
