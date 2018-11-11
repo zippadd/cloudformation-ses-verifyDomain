@@ -1,0 +1,42 @@
+{
+  "name": "cloudformation-ses-verifydomain",
+  "version": "1.0.0",
+  "description": "Custom Resource for verifying a domain for AWS SES, including adding the proper DNS records",
+  "keywords": [
+    "aws",
+    "cloudformation",
+    "cfn",
+    "custom",
+    "custom resource",
+    "ses",
+    "domain",
+    "verification"
+  ],
+  "main": "index.js",
+  "repository": "git@github.com:zippadd/aws-custom-resources.git",
+  "author": "John Griepentrog",
+  "homepage": "https://github.com/zippadd/aws-custom-resources",
+  "bugs": {
+    "url": "https://github.com/zippadd/aws-custom-resources/issues"
+  },
+  "license": "MIT",
+  "private": false,
+  "devDependencies": {
+    "aws-sdk-mock": "^4.2.0",
+    "codecov": "^3.1.0",
+    "eslint": "^5.8.0",
+    "jest": "^23.6.0",
+    "jsdoc-to-markdown": "^4.0.1"
+  },
+  "scripts": {
+    "doc": "jsdoc2md index.js > TEMP.MD",
+    "lint": "eslint . ",
+    "test": "jest --coverage && codecov",
+    "validate": "yarn lint && yarn jest",
+    "package": "sam package --template-file cf.yml --output-template-file cf-packaged.yml --s3-bucket"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.348.0",
+    "cfn-custom-resource": "^4.0.8"
+  }
+}
