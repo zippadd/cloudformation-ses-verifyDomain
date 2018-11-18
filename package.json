@@ -11,7 +11,16 @@
   },
   "license": "MIT",
   "private": false,
+  "config": {
+    "defaultRegion": "us-east-1",
+    "environment": "dev",
+    "s3Bucket": "some-s3-bucket",
+    "stackName": "custom-resources",
+    "rawTemplate": "cf.yml",
+    "packagedTemplate": "cf-packaged.yaml"
+  },
   "scripts": {
+    "package": "sam package && lerna bootstrap && lerna exec 'sam package --template-file $npm_package_config_rawTemplate --s3-bucket $npm_package_config_s3Bucket-$npm_package_config_environment-$awsRegion --output-template-file $npm_package_config_packedTemplate'",
     "test": "lerna bootstrap && lerna exec 'yarn test'"
   },
   "devDependencies": {

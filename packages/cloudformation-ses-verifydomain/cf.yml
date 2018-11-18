@@ -76,7 +76,6 @@ Parameters:
 ###Outputs###
 Outputs:
   CloudformationSESVerifyDomainServiceToken:
-    Condition: NoCreateCustomResource
     Description: Returns the service token for the CloudformationSESVerifyDomain custom resource
     Value: !GetAtt CloudformationSESVerifyDomainFunction.Arn
     Export:
