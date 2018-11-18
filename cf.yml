@@ -6,7 +6,7 @@ Resources:
   SESVerifyDomainCR:
     Type: "AWS::CloudFormation::Stack"
     Properties:
-      TemplateURL: "packages/cloudformation-ses-verifydomain/cf-packaged.yml"
+      TemplateURL: "./packages/cloudformation-ses-verifydomain/cf-packaged.yml"
 ###Parameters###
 Parameters:
   EnvironmentParameter:
@@ -17,6 +17,3 @@ Parameters:
       - test
       - prod
     Description: Specifies whether dev, test, or prod environment. dev is default.
-  CustomResourceTemplateS3LocationParameter:
-    Type: String
-    Description: Specifies the S3 hosting location of the custom resource templates
