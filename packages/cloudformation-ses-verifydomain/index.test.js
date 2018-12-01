@@ -136,7 +136,7 @@ test("Gets a Promise resolving to the proper change id for a DELETE request", ()
 });
 
 describe("Test errors", () => {
-  test("Gets a Promise rejecting for a (non-existant) FOO request", () => {
+  test("Gets a Promise rejecting for a (non-existent) FOO request", () => {
     expect.assertions(1);
     return expect(handler({RequestType: "Foo", ResourceProperties: {HostedZoneId: hostedZoneId}, OldResourceProperties: null}))
       .rejects.toBeInstanceOf(Error);
