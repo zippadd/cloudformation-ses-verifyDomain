@@ -62,7 +62,7 @@ const getDigest = (string, inputEncoding = "utf8", outputEncoding = "hex", algor
  * @return {string} Reference change id for verification
  */
 const getRefChangeId = (domainName, verificationToken, dkimTokens) => {
-  const verificationTokenRecords = [{Name: `_amazonses.${domainName}`, Value: verificationToken, Type: "TXT"}];
+  const verificationTokenRecords = [{Name: `_amazonses.${domainName}`, Value: `"${verificationToken}"`, Type: "TXT"}];
   const DkimTokenRecord1 = {Name: `${dkimTokens[0]}._domainkey.${domainName}`, Value: `${dkimTokens[0]}.dkim.amazonses.com`, Type: "CNAME"};
   const DkimTokenRecord2 = {Name: `${dkimTokens[1]}._domainkey.${domainName}`, Value: `${dkimTokens[1]}.dkim.amazonses.com`, Type: "CNAME"};
   const DkimTokenRecord3 = {Name: `${dkimTokens[2]}._domainkey.${domainName}`, Value: `${dkimTokens[2]}.dkim.amazonses.com`, Type: "CNAME"};
