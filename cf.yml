@@ -6,6 +6,8 @@ Resources:
   SESVerifyDomainCR:
     Type: "AWS::CloudFormation::Stack"
     Properties:
+      Parameters:
+        EnvironmentParameter: !Ref EnvironmentParameter
       TemplateURL: "./packages/cloudformation-ses-verifydomain/cf-packaged.yml"
 ###Parameters###
 Parameters:
