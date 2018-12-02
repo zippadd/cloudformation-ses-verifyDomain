@@ -25,7 +25,7 @@ Resources:
               - route53:ListHostedZonesByName
             Resource:
               - "*"
-      ManagedPolicyName: !Join [ "-", [cloudformation-ses-verifydomain-cr-access, !Ref EnvironmentParameter, !Ref "AWS::Region"]]
+      ManagedPolicyName: !Sub "cloudformation-ses-verifydomain-cr-access-${EnvironmentParameter}-${AWS::Region}"
   CloudformationSESVerifyDomainRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -39,7 +39,7 @@ Resources:
                 - "lambda.amazonaws.com"
             Action:
               - "sts:AssumeRole"
-      RoleName: !Join [ "-", [cloudformation-ses-verifydomain-cr-role, !Ref EnvironmentParameter, !Ref "AWS::Region"]]
+      RoleName: !Sub "cloudformation-ses-verifydomain-cr-role-${EnvironmentParameter}-${AWS::Region}"
       ManagedPolicyArns:
       - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
       - "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"
@@ -47,7 +47,7 @@ Resources:
   CloudformationSESVerifyDomainFunction:
     Type: "AWS::Lambda::Function"
     Properties:
-      FunctionName: !Join [ "-", [cloudformation-ses-verifydomain-cr, !Ref EnvironmentParameter]]
+      FunctionName: !Sub "cloudformation-ses-verifydomain-cr-${EnvironmentParameter}"
       Handler: index.handler
       Runtime: nodejs8.10
       Code: .
@@ -80,4 +80,4 @@ Outputs:
     Description: Returns the service token for the CloudformationSESVerifyDomain custom resource
     Value: !GetAtt CloudformationSESVerifyDomainFunction.Arn
     Export:
-      Name: CloudformationSESVerifyDomainServiceToken
+      Name: !Sub "CloudformationSESVerifyDomainServiceToken-${EnvironmentParameter}"
