@@ -1,6 +1,6 @@
 jest.mock("cfn-custom-resource");
 
-const {verifyDomain, handler} = require("./index");
+const {getZoneIdByName, verifyDomain, handler} = require("./index");
 const AWS = require("aws-sdk-mock");
 const AWS_SDK = require("aws-sdk");
 const crypto = require("crypto");
@@ -92,6 +92,9 @@ AWS.mock("SES", "verifyDomainDkim", (params, callback) => {
   return callback(null, {DkimTokens});
 });
 AWS.mock("Route53", "getHostedZone", (params, callback) => {
+  if (!(params.Id === hostedZoneId || params.Id === altHostedZoneId)) {
+    throw new Error("Invalid zone id");
+  }
   const hostedZoneHash = crypto.createHash("sha256");
   hostedZoneHash.update(params.Id, "utf8");
   const calcDomainName = `${hostedZoneHash.digest("hex")}.com`;
@@ -105,34 +108,123 @@ AWS.mock("Route53", "changeResourceRecordSets", (params, callback) => {
   });
   return callback(null, {ChangeInfo: {Id: calculateChangeId(extractedChanges)}});
 });
+AWS.mock("Route53", "listHostedZonesByName", (params, callback) => {
+  const {DNSName} = params;
+  let zoneId, zoneName;
+
+  switch (DNSName) {
+  case `${domainName}`:
+  case `${domainName}.`:
+    zoneId = hostedZoneId;
+    zoneName = domainName;
+    break;
+  case `${altDomainName}`:
+  case `${altDomainName}.`:
+    zoneId = altHostedZoneId;
+    zoneName = altDomainName;
+    break;
+  case "ap.domain.com":
+  case "ap.domain.com.":
+    zoneId = getRandId();
+    zoneName = "zap.domain.com";
+    break;
+  default:
+    zoneId = "";
+    zoneName = "";
+  }
+
+  const zones = zoneId === "" || zoneName === "" ?
+    [] :
+    [
+      {
+        Id: `/hostedzone/${zoneId}`,
+        Name: `${zoneName}.`
+      }
+    ];
+
+  return callback(null, {HostedZones: zones});
+});
 
 /* Tests */
-test("Gets a Promise resolving to the proper change id", () => {
-  expect.assertions(1);
-  return expect(verifyDomain(hostedZoneId, "UPSERT")).resolves.toEqual({domainName, changeId: refChangeId});
+describe("Test lookupDomain", () => {
+  test("Gets a Promise resolving to the proper zone id for primary zone", () => {
+    expect.assertions(1);
+    return expect(getZoneIdByName(domainName)).resolves.toEqual(hostedZoneId);
+  });
+
+  test("Gets a Promise resolving to the proper zone id for primary zone with a trailing period", () => {
+    expect.assertions(1);
+    return expect(getZoneIdByName(`${domainName}.`)).resolves.toEqual(hostedZoneId);
+  });
+
+  test("Gets a Promise resolving to the proper zone id for alt zone", () => {
+    expect.assertions(1);
+    return expect(getZoneIdByName(altDomainName)).resolves.toEqual(altHostedZoneId);
+  });
+
+  test("Gets a Promise resolving to an empty string for an non-existent domain in R53", () => {
+    expect.assertions(1);
+    return expect(getZoneIdByName("jkiuyybygjgjgjguuytuituytuytuytyvtttiutytuy.com")).rejects.toBeInstanceOf(Error);
+  });
+
+  test("Gets a Promise resolving to an empty string for an non-exact match to domain in R53", () => {
+    expect.assertions(1);
+    return expect(getZoneIdByName("ap.domain.com")).rejects.toBeInstanceOf(Error);
+  });
 });
 
-test("Gets a Promise resolving to the proper change id for a CREATE request", () => {
-  /* TODO: Repeat set up to simulate update */
-  expect.assertions(1);
-  return expect(handler({RequestType: "Create", ResourceProperties: {HostedZoneId: hostedZoneId}, OldResourceProperties: null}))
-    .resolves.toEqual({domainName, data: {changeId: refChangeId}});
+describe("Test verifyDomain", () => {
+  test("Gets a Promise resolving to the proper change id for UPSERT", () => {
+    expect.assertions(1);
+    return expect(verifyDomain(hostedZoneId, "UPSERT")).resolves.toEqual({domainName, changeId: refChangeId});
+  });
+
+  test("Gets a Promise resolving to the proper change id for DELETE", () => {
+    expect.assertions(1);
+    return expect(verifyDomain(hostedZoneId, "DELETE")).resolves.toEqual({domainName, changeId: refChangeId});
+  });
 });
 
-test("Gets a Promise resolving to the proper change id for a UPDATE request", () => {
-  expect.assertions(1);
-  return expect(handler({
-    RequestType: "Update",
-    ResourceProperties: {HostedZoneId: hostedZoneId},
-    OldResourceProperties: {HostedZoneId: altHostedZoneId}
-  }))
-    .resolves.toEqual({domainName, data: {newChangeId: refChangeId, oldChangeId: altRefChangeId, oldDomainName: altDomainName}});
-});
+describe("Test handler", () => {
+  test("Gets a Promise resolving to the proper change id for a CREATE request", () => {
+    /* TODO: Repeat set up to simulate update */
+    expect.assertions(1);
+    return expect(handler({RequestType: "Create", ResourceProperties: {HostedZoneId: hostedZoneId}, OldResourceProperties: null}))
+      .resolves.toEqual({domainName, data: {changeId: refChangeId}});
+  });
 
-test("Gets a Promise resolving to the proper change id for a DELETE request", () => {
-  expect.assertions(1);
-  return expect(handler({RequestType: "Delete", ResourceProperties: {HostedZoneId: hostedZoneId}, OldResourceProperties: null}))
-    .resolves.toEqual({domainName, data: {changeId: refChangeId}});
+  test("Gets a Promise resolving to the proper change id for a CREATE request without the zone id", () => {
+    /* TODO: Repeat set up to simulate update */
+    expect.assertions(1);
+    return expect(handler({RequestType: "Create", ResourceProperties: {HostedZoneName: domainName}, OldResourceProperties: null}))
+      .resolves.toEqual({domainName, data: {changeId: refChangeId}});
+  });
+
+  test("Gets a Promise resolving to the proper change id for a UPDATE request", () => {
+    expect.assertions(1);
+    return expect(handler({
+      RequestType: "Update",
+      ResourceProperties: {HostedZoneId: hostedZoneId},
+      OldResourceProperties: {HostedZoneId: altHostedZoneId}
+    }))
+      .resolves.toEqual({domainName, data: {newChangeId: refChangeId, oldChangeId: altRefChangeId, oldDomainName: altDomainName}});
+  });
+
+  test("Gets a Promise resolving to the proper change id for a UPDATE request without the zone id", () => {
+    expect.assertions(1);
+    return expect(handler({
+      RequestType: "Update",
+      ResourceProperties: {HostedZoneName: domainName},
+      OldResourceProperties: {HostedZoneName: altDomainName}
+    }))
+      .resolves.toEqual({domainName, data: {newChangeId: refChangeId, oldChangeId: altRefChangeId, oldDomainName: altDomainName}});
+  });
+
+  test("Gets a Promise resolving to the proper change id for a DELETE request", () => {
+    expect.assertions(1);
+    return expect(handler({RequestType: "Delete", ResourceProperties: {HostedZoneId: hostedZoneId}, OldResourceProperties: null}))
+      .resolves.toEqual({domainName, data: {changeId: refChangeId}});
+  });
 });
 
 describe("Test errors", () => {
@@ -148,15 +240,37 @@ describe("Test errors", () => {
       .rejects.toBeInstanceOf(Error);
   });
 
+  test("Gets a Promise rejecting for a CREATE request with a bad zone id", () => {
+    expect.assertions(1);
+    return expect(handler({RequestType: "Create", ResourceProperties: {HostedZoneId: "ABC"}, OldResourceProperties: null}))
+      .rejects.toBeInstanceOf(Error);
+  });
+
   test("Gets a Promise rejecting for an invalid UPDATE request", () => {
     expect.assertions(1);
     return expect(handler({RequestType: "Update", ResourceProperties: {HostedZoneId: hostedZoneId}, OldResourceProperties: null}))
       .rejects.toBeInstanceOf(Error);
   });
 
+  test("Gets a Promise rejecting for an UPDATE request with a bad zone id", () => {
+    expect.assertions(1);
+    return expect(handler({
+      RequestType: "Update",
+      ResourceProperties: {HostedZoneId: hostedZoneId},
+      OldResourceProperties: {HostedZoneId: "ABC"}
+    }))
+      .rejects.toBeInstanceOf(Error);
+  });
+
   test("Gets a Promise rejecting for an invalid DELETE request", () => {
     expect.assertions(1);
     return expect(handler({RequestType: "Delete", ResourceProperties: {HostedZoneId: null}, OldResourceProperties: null}))
+      .rejects.toBeInstanceOf(Error);
+  });
+
+  test("Gets a Promise rejecting for a DELETE request with a bad zone id", () => {
+    expect.assertions(1);
+    return expect(handler({RequestType: "Delete", ResourceProperties: {HostedZoneId: "ABC"}, OldResourceProperties: null}))
       .rejects.toBeInstanceOf(Error);
   });
 });
