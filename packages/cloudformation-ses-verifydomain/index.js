@@ -70,7 +70,7 @@ const verifyDomain = async (hostedZoneIdOrName, action) => {
     ResourceRecordSet: {
       Name: `${SESVerifyHost}.${domainName}`,
       ResourceRecords: [
-        {Value: VerificationToken}
+        {Value: `${VerificationToken}`}
       ],
       TTL: 60,
       Type: "TXT"
