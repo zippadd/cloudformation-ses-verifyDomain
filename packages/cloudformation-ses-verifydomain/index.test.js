@@ -4,7 +4,7 @@ const {getZoneIdByName, verifyDomain, handler} = require("./index");
 const AWS = require("aws-sdk-mock");
 const AWS_SDK = require("aws-sdk");
 const crypto = require("crypto");
-const {sendSuccess, sendFailure} = require("cfn-custom-resource");
+const {sendSuccess, sendFailure, DEFAULT_PHYSICAL_RESOURCE_ID} = require("cfn-custom-resource");
 
 sendSuccess.mockImplementation((physicalResourceId, data) => {
   return Promise.resolve({domainName: physicalResourceId, data});
@@ -208,7 +208,8 @@ describe("Test handler", () => {
     return expect(handler({
       RequestType: "Update",
       ResourceProperties: {HostedZoneId: hostedZoneId},
-      OldResourceProperties: {HostedZoneId: altHostedZoneId}
+      OldResourceProperties: {HostedZoneId: altHostedZoneId},
+      PhysicalResourceId: altDomainName
     }))
       .resolves.toEqual({domainName, data: {newChangeId: refChangeId, oldChangeId: altRefChangeId, oldDomainName: altDomainName}});
   });
@@ -218,14 +219,20 @@ describe("Test handler", () => {
     return expect(handler({
       RequestType: "Update",
       ResourceProperties: {HostedZoneName: domainName},
-      OldResourceProperties: {HostedZoneName: altDomainName}
+      OldResourceProperties: {HostedZoneName: altDomainName},
+      PhysicalResourceId: altDomainName
     }))
       .resolves.toEqual({domainName, data: {newChangeId: refChangeId, oldChangeId: altRefChangeId, oldDomainName: altDomainName}});
   });
 
   test("Gets a Promise resolving to the proper change id for a DELETE request", () => {
     expect.assertions(1);
-    return expect(handler({RequestType: "Delete", ResourceProperties: {HostedZoneId: hostedZoneId}, OldResourceProperties: null}))
+    return expect(handler({
+      RequestType: "Delete",
+      ResourceProperties: {HostedZoneId: hostedZoneId},
+      OldResourceProperties: null,
+      PhysicalResourceId: domainName
+    }))
       .resolves.toEqual({domainName, data: {changeId: refChangeId}});
   });
 });
@@ -259,21 +266,43 @@ describe("Test errors", () => {
     expect.assertions(1);
     return expect(handler({
       RequestType: "Update",
-      ResourceProperties: {HostedZoneId: hostedZoneId},
-      OldResourceProperties: {HostedZoneId: "ABC"}
+      ResourceProperties: {HostedZoneId: "ABC"},
+      OldResourceProperties: {HostedZoneId: altHostedZoneId},
+      PhysicalResourceId: altDomainName
     }))
       .rejects.toBeInstanceOf(Error);
   });
 
   test("Gets a Promise rejecting for an invalid DELETE request", () => {
     expect.assertions(1);
-    return expect(handler({RequestType: "Delete", ResourceProperties: {HostedZoneId: null}, OldResourceProperties: null}))
+    return expect(handler({
+      RequestType: "Delete",
+      ResourceProperties: {HostedZoneId: null},
+      OldResourceProperties: null,
+      PhysicalResourceId: domainName
+    }))
       .rejects.toBeInstanceOf(Error);
   });
 
   test("Gets a Promise rejecting for a DELETE request with a bad zone id", () => {
     expect.assertions(1);
-    return expect(handler({RequestType: "Delete", ResourceProperties: {HostedZoneId: "ABC"}, OldResourceProperties: null}))
+    return expect(handler({
+      RequestType: "Delete",
+      ResourceProperties: {HostedZoneId: "ABC"},
+      OldResourceProperties: null,
+      PhysicalResourceId: domainName
+    }))
       .rejects.toBeInstanceOf(Error);
+  });
+
+  test("Gets a Promise resolving to null data for a DELETE request with a bad zone id and a default reason PhysicalResourceId", () => {
+    expect.assertions(1);
+    return expect(handler({
+      RequestType: "Delete",
+      ResourceProperties: {HostedZoneId: "ABC"},
+      OldResourceProperties: null,
+      PhysicalResourceId: DEFAULT_PHYSICAL_RESOURCE_ID
+    }))
+      .resolves.toMatchObject({data: null, domainName: DEFAULT_PHYSICAL_RESOURCE_ID});
   });
 });

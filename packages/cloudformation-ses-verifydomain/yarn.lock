@@ -656,9 +656,9 @@ catharsis@~0.8.9:
     underscore-contrib "~0.3.0"
 
 cfn-custom-resource@^4.0.8:
-  version "4.0.8"
-  resolved "https://registry.yarnpkg.com/cfn-custom-resource/-/cfn-custom-resource-4.0.8.tgz#211e7fe9fc301f9c826e6b672ccdf4e30ef96903"
-  integrity sha512-8WqugT6/y4QeJYHHqLd0d3So6hB1LXKkmDuEx4TXFXf2vnpKbYMUJxZNK8mih4L47kR71oYP0Xm1MixszXhDpg==
+  version "4.0.9"
+  resolved "https://registry.yarnpkg.com/cfn-custom-resource/-/cfn-custom-resource-4.0.9.tgz#8331f66d2c07fd11a908dce0733123e67719b61e"
+  integrity sha512-MK0B9rKN72AbMjF2zWqbhcPA+J+8kN1LbgHSS7jCnR8y0L+UDcTEftq1YmeJMkpSxPVac1qrTP6gL0Ye1a0w2A==
 
 chalk@^1.1.3:
   version "1.1.3"
