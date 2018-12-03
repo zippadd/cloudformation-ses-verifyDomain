@@ -4,6 +4,9 @@ const AWS = require("aws-sdk");
 const UPSERT = "UPSERT";
 const DELETE = "DELETE";
 
+const NO_MATCH_NAME_ERROR = "Unable to find any matching zones at all given provided domain name";
+const NO_EXACT_MATCH_NAME_ERROR = "Unable to find an exact matching zone given provided domain name";
+
 /**
  * Returns a Zone Id for a domain looked up by name
  * @param {string} domainName Name of the domain to look up (e.g. domain.com)
@@ -17,7 +20,7 @@ const getZoneIdByName = async (domainName) => {
   const {HostedZones} = await route53.listHostedZonesByName(params).promise();
 
   if (!HostedZones || HostedZones.length < 1) {
-    throw new Error("Unable to find any matching zones at all given provided domain name");
+    throw new Error(NO_MATCH_NAME_ERROR);
   }
 
   /*  Due to lexicographic ordering, matching domain should be first item
@@ -33,7 +36,7 @@ const getZoneIdByName = async (domainName) => {
       lookup with a trailing period present
       */
   if (!(Name.slice(0, -1) === domainName || Name === domainName)) {
-    throw new Error("Unable to find an exact matching zone given provided domain name");
+    throw new Error(NO_EXACT_MATCH_NAME_ERROR);
   }
 
   return Id.replace("/hostedzone/", "");
@@ -43,7 +46,8 @@ const getZoneIdByName = async (domainName) => {
  * Verifies the domain with SES for both verification and DKIM
  * @param {string} hostedZoneIdOrName   Route53 hosted id or name of the domain to verify
  * @param {string} action         Action to take for Route53. Must be either: "CREATE", "UPSERT", or "DELETE"
- * @return {Promise}        Returns a promise that provides the result of the record addition or rejects on an error
+ * @return {Promise}        Returns a promise that provides the result of the record addition, which is the domain name
+ *                          and changeId or rejects on an error
  */
 const verifyDomain = async (hostedZoneIdOrName, action) => {
   const ses = new AWS.SES({apiVersion: "2010-12-01"});
@@ -120,7 +124,7 @@ const verifyDomain = async (hostedZoneIdOrName, action) => {
 const handler = async (event, /* context */) => {
   console.log(event);
 
-  const {RequestType, ResourceProperties, OldResourceProperties} = event;
+  const {RequestType, ResourceProperties, OldResourceProperties, PhysicalResourceId} = event;
 
   const {HostedZoneId, HostedZoneName} = ResourceProperties;
   const zoneIdOrName = HostedZoneId ? HostedZoneId : HostedZoneName;
@@ -147,9 +151,19 @@ const handler = async (event, /* context */) => {
   }
   case cfnCR.DELETE: {
     try {
-      const {domainName, changeId} = await verifyDomain(zoneIdOrName, DELETE);
-      return cfnCR.sendSuccess(domainName, {changeId}, event);
+      const {changeId} = await verifyDomain(zoneIdOrName, DELETE);
+      return cfnCR.sendSuccess(PhysicalResourceId, {changeId}, event);
     } catch (err) {
+      /* We don't specify an alternate resource id on a sendFailure,
+         and by default it is set to this constant when a physical
+         resource id is not set.
+         As such, if the CREATE method failed, it will be set to this.
+         To prevent an unrecoverable state, we want to allow this
+         to post success. */
+      if (PhysicalResourceId === cfnCR.DEFAULT_PHYSICAL_RESOURCE_ID) {
+        return cfnCR.sendSuccess(PhysicalResourceId, null, event);
+      }
+
       return cfnCR.sendFailure(err, event);
     }
   }
