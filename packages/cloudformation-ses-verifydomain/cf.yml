@@ -13,6 +13,7 @@ Resources:
           -
             Effect: "Allow"
             Action:
+              - ses:DeleteIdentity
               - ses:VerifyDomainDkim
               - ses:VerifyDomainIdentity
             Resource:
