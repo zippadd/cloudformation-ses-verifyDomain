@@ -1,6 +1,9 @@
 const cfnCR = require("cfn-custom-resource");
 const AWS = require("aws-sdk");
 
+const UPSERT = "UPSERT";
+const DELETE = "DELETE";
+
 /**
  * Returns a Zone Id for a domain looked up by name
  * @param {string} domainName Name of the domain to look up (e.g. domain.com)
@@ -63,6 +66,11 @@ const verifyDomain = async (hostedZoneIdOrName, action) => {
   const dkimHost = "_domainkey";
   const SESVerifyDkim = "dkim.amazonses.com";
 
+  if (action === DELETE) {
+    const sesDelParams = {Identity: domainName};
+    await ses.deleteIdentity(sesDelParams).promise();
+  }
+
   const r53Changes = [];
 
   r53Changes.push({
@@ -100,6 +108,7 @@ const verifyDomain = async (hostedZoneIdOrName, action) => {
   };
 
   const {ChangeInfo: {Id}} = await route53.changeResourceRecordSets(r53Params).promise();
+
   return {domainName, changeId: Id};
 };
 
@@ -119,7 +128,7 @@ const handler = async (event, /* context */) => {
   switch (RequestType) {
   case cfnCR.CREATE: {
     try {
-      const {domainName, changeId} = await verifyDomain(zoneIdOrName, "UPSERT");
+      const {domainName, changeId} = await verifyDomain(zoneIdOrName, UPSERT);
       return cfnCR.sendSuccess(domainName, {changeId}, event);
     } catch (err) {
       return cfnCR.sendFailure(err, event);
@@ -129,8 +138,8 @@ const handler = async (event, /* context */) => {
     try {
       const {HostedZoneId: OldHostedZoneId, HostedZoneName: OldHostedZoneName} = OldResourceProperties;
       const oldZoneIdOrName = OldHostedZoneId ? OldHostedZoneId : OldHostedZoneName;
-      const {domainName: oldDomainName, changeId: oldChangeId} = await verifyDomain(oldZoneIdOrName, "DELETE");
-      const {domainName, changeId} = await verifyDomain(zoneIdOrName, "UPSERT");
+      const {domainName: oldDomainName, changeId: oldChangeId} = await verifyDomain(oldZoneIdOrName, DELETE);
+      const {domainName, changeId} = await verifyDomain(zoneIdOrName, UPSERT);
       return cfnCR.sendSuccess(domainName, {newChangeId: changeId, oldChangeId, oldDomainName}, event);
     } catch (err) {
       return cfnCR.sendFailure(err, event);
@@ -138,7 +147,7 @@ const handler = async (event, /* context */) => {
   }
   case cfnCR.DELETE: {
     try {
-      const {domainName, changeId} = await verifyDomain(zoneIdOrName, "DELETE");
+      const {domainName, changeId} = await verifyDomain(zoneIdOrName, DELETE);
       return cfnCR.sendSuccess(domainName, {changeId}, event);
     } catch (err) {
       return cfnCR.sendFailure(err, event);
@@ -149,4 +158,4 @@ const handler = async (event, /* context */) => {
   }
 };
 
-module.exports = {handler, verifyDomain, getZoneIdByName};
+module.exports = {handler, verifyDomain, getZoneIdByName, UPSERT, DELETE};

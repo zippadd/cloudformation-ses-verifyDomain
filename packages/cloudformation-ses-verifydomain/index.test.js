@@ -85,6 +85,9 @@ const refChangeId = getRefChangeId(domainName, VerificationToken, DkimTokens);
 const altRefChangeId = getRefChangeId(altDomainName, VerificationToken, DkimTokens);
 
 /* Set Up AWS Mocks */
+AWS.mock("SES", "deleteIdentity", (params, callback) => {
+  return callback(null, null);
+});
 AWS.mock("SES", "verifyDomainIdentity", (params, callback) => {
   return callback(null, {VerificationToken});
 });
