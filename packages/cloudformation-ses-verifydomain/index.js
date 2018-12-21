@@ -85,7 +85,9 @@ const verifyDomain = async (hostedZoneIdOrName, action) => {
         {Value: `"${VerificationToken}"`}
       ],
       TTL: 60,
-      Type: "TXT"
+      Type: "TXT",
+      MultiValueAnswer: true,
+      SetIdentifier: `cfn-ses-verifyDomain-${process.env.AWS_REGION}`
     }
   });
 
