@@ -1,0 +1,27 @@
+{
+  "name": "cloudformation-acm-validationdns",
+  "version": "1.0.0",
+  "description": "Adds the proper DNS entries to Route53 to validate an ACM issued certificate",
+  "main": "index.js",
+  "author": "John Griepentrog",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "cfn-custom-resource": "^4.0.9",
+    "interval-promise": "^1.3.0"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.357.0",
+    "aws-sdk-mock": "^4.2.0",
+    "codecov": "^3.1.0",
+    "eslint": "^5.8.0",
+    "jest": "^23.6.0",
+    "jsdoc-to-markdown": "^4.0.1"
+  },
+  "scripts": {
+    "doc": "jsdoc2md index.js > TEMP.MD",
+    "lint": "eslint . ",
+    "test": "jest --coverage && codecov",
+    "validate": "yarn lint && yarn jest"
+  }
+}

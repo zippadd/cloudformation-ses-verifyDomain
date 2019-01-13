@@ -10,7 +10,7 @@ const NO_EXACT_MATCH_NAME_ERROR = "Unable to find an exact matching zone given p
 /**
  * Returns a Zone Id for a domain looked up by name
  * @param {string} domainName Name of the domain to look up (e.g. domain.com)
- * @return {string}           Zone Id if domain is found or empty string if not
+ * @return {string}           Zone Id if domain is found or an error thrown if not
  */
 const getZoneIdByName = async (domainName) => {
   const route53 = new AWS.Route53({apiVersion: "2013-04-01"});
