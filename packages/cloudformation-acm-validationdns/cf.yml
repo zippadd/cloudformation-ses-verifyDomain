@@ -54,15 +54,15 @@ Resources:
       Description: Publishes Route53 records to validate an ACM certificate
       MemorySize: 128
       Timeout: 60
-      Role: !GetAtt  CloudformationACMValidationDNSRole.Arn
+      Role: !GetAtt CloudformationACMValidationDNSRole.Arn
       TracingConfig:
         Mode: Active
   #Reference custom resource reference
-  # CloudformationACMValidationDNS:
-  #  Type: Custom:: CloudformationACMValidationDNS
+  #CloudformationACMValidationDNS:
+  #  Type: Custom::CloudformationACMValidationDNS
   #  Condition: CreateCustomResource
   #  Properties:
-  #    ServiceToken: !GetAtt  CloudformationACMValidationDNS.Arn
+  #    ServiceToken: !GetAtt CloudformationACMValidationDNS.Arn
   #    HostedZoneId: !Ref HostedZoneIdParameter
 ###Parameters###
 Parameters:
@@ -76,8 +76,8 @@ Parameters:
     Description: Specifies whether dev, test, or prod environment. dev is default.
 ###Outputs###
 Outputs:
-   CloudformationACMValidationDNSServiceToken:
-    Description: Returns the service token for the  CloudformationACMValidationDNS custom resource
-    Value: !GetAtt  CloudformationACMValidationDNSFunction.Arn
+  CloudformationACMValidationDNSServiceToken:
+    Description: Returns the service token for the CloudformationACMValidationDNS custom resource
+    Value: !GetAtt CloudformationACMValidationDNSFunction.Arn
     Export:
-      Name: !Sub " CloudformationACMValidationDNS-${EnvironmentParameter}"
+      Name: !Sub "CloudformationACMValidationDNS-${EnvironmentParameter}"
