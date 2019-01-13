@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Creates a custom resource to add ACM certificate validation DNS entries into Route 53
+###Resources###
+Resources:
+  CloudformationACMValidationDNSPolicy:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      Description: Enables the CloudformationACMValidationDNS custom resource to lookup certificates and publish needed records
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Action:
+              - acm:DescribeCertificate
+              - acm:ListCertificates
+            Resource:
+              - "*"
+          -
+            Effect: "Allow"
+            Action:
+              - route53:ChangeResourceRecordSets
+              - route53:ListHostedZonesByName
+              - route53:TestDNSAnswer
+            Resource:
+              - "*"
+      ManagedPolicyName: !Sub "cloudformation-acm-validationdns-cr-access-${EnvironmentParameter}-${AWS::Region}"
+  CloudformationACMValidationDNSRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      RoleName: !Sub "cloudformation-acm-validationdns-cr-role-${EnvironmentParameter}-${AWS::Region}"
+      ManagedPolicyArns:
+      - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      - "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"
+      - !Ref CloudformationACMValidationDNSPolicy
+  CloudformationACMValidationDNSFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName: !Sub "cloudformation-acm-validationdns-cr-${EnvironmentParameter}"
+      Handler: index.handler
+      Runtime: nodejs8.10
+      Code: .
+      Description: Publishes Route53 records to validate an ACM certificate
+      MemorySize: 128
+      Timeout: 60
+      Role: !GetAtt  CloudformationACMValidationDNSRole.Arn
+      TracingConfig:
+        Mode: Active
+  #Reference custom resource reference
+  # CloudformationACMValidationDNS:
+  #  Type: Custom:: CloudformationACMValidationDNS
+  #  Condition: CreateCustomResource
+  #  Properties:
+  #    ServiceToken: !GetAtt  CloudformationACMValidationDNS.Arn
+  #    HostedZoneId: !Ref HostedZoneIdParameter
+###Parameters###
+Parameters:
+  EnvironmentParameter:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - test
+      - prod
+    Description: Specifies whether dev, test, or prod environment. dev is default.
+###Outputs###
+Outputs:
+   CloudformationACMValidationDNSServiceToken:
+    Description: Returns the service token for the  CloudformationACMValidationDNS custom resource
+    Value: !GetAtt  CloudformationACMValidationDNSFunction.Arn
+    Export:
+      Name: !Sub " CloudformationACMValidationDNS-${EnvironmentParameter}"
