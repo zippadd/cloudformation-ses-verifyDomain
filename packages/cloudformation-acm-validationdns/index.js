@@ -173,7 +173,7 @@ const publishCertValidationDNS = async (certificateArn, action) => {
  */
 const lookupCertificate = async (domainName, timeoutMs) => {
   const acm = new AWS.ACM({apiVersion: ACM_API_VERSION});
-  const WAIT_BETWEEN_REQS_MS = 100;
+  const WAIT_BETWEEN_REQS_MS = 1000;
   let certificateArn;
 
   /**
