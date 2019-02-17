@@ -13,6 +13,7 @@ const ACM_API_VERSION = "2015-12-08";
 const R53_API_VERSION = "2013-04-01";
 const NO_MATCH_NAME_ERROR = "Unable to find any matching zones at all given provided domain name";
 const NO_EXACT_MATCH_NAME_ERROR = "Unable to find an exact matching zone given provided domain name";
+const TIMEOUT_MARGIN_OF_SAFETY_MS = 4000;
 
 /**
  * Returns a Zone Id for a domain looked up by name
@@ -234,7 +235,6 @@ const lookupCertificate = async (domainName, timeoutMs) => {
 const userHandlerLogic = async (event, context) => {
   const {ResourceProperties, OldResourceProperties, PhysicalResourceId} = event;
   const {CertificateFQDN} = ResourceProperties;
-  const TIMEOUT_MARGIN_OF_SAFETY_MS = 3000;
   const lambdaTimeout = context.getRemainingTimeInMillis() - TIMEOUT_MARGIN_OF_SAFETY_MS;
 
   const certificateArn = await lookupCertificate(CertificateFQDN, lambdaTimeout);
@@ -295,8 +295,18 @@ const processCREvent = async (event, context) => {
  */
 const handler = async (event, context) => {
   console.log(event);
-  const result = await processCREvent(event, context);
-  return result;
+  try {
+    const processCREventPromise = processCREvent(event, context);
+    const timeoutPromise = new Promise((resolve, reject) => {
+      setTimeout(() => {
+        reject(new Error("Custom Resource operation timed out"));
+      }, context.getRemainingTimeInMillis() - TIMEOUT_MARGIN_OF_SAFETY_MS);
+    });
+    const result = await Promise.race(processCREventPromise, timeoutPromise);
+    return result;
+  } catch (err) {
+    return cfnCR.sendFailure(err, event);
+  }
 };
 
 module.exports = {handler, lookupCertificate, publishCertValidationDNS, getZoneIdByFQDN, getZoneIdByName};
