@@ -302,7 +302,7 @@ const handler = async (event, context) => {
         reject(new Error("Custom Resource operation timed out"));
       }, context.getRemainingTimeInMillis() - TIMEOUT_MARGIN_OF_SAFETY_MS);
     });
-    const result = await Promise.race(processCREventPromise, timeoutPromise);
+    const result = await Promise.race([processCREventPromise, timeoutPromise]);
     return result;
   } catch (err) {
     return cfnCR.sendFailure(err, event);
