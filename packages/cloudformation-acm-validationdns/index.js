@@ -66,6 +66,10 @@ const getZoneIdByFQDN = async (fqdn) => {
     domainName = `${rest[domainNameIndex]}.${domainName}`;
     zoneId = await getZoneIdByName(domainName); // eslint-disable-line no-await-in-loop
 
+    if (domainName === fqdn) {
+      return zoneId;
+    }
+
     const r53Params = {
       HostedZoneId: zoneId,
       RecordName: normalizedFQDN,
