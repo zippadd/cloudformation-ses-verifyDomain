@@ -35,7 +35,7 @@ const altCertId = getNewCertificateId();
 
 const fakeHostedZoneId = getRandId();
 const fakeDomainName = `${getDigest(fakeHostedZoneId)}.com`;
-const fakeCertFQDN = `${fakeDomainName}`;
+const fakeCertFQDN = `fake.${fakeDomainName}`;
 const fakeCertId = getNewCertificateId();
 
 const fakeHostedZoneId2 = getRandId();
@@ -464,6 +464,11 @@ describe("Test getting zone by FQDN", () => {
   test("Gets a Promise rejecting for a FQDN with invalid DNS", () => {
     expect.assertions(1);
     return expect(getZoneIdByFQDN(fakeCertFQDN)).rejects.toBeInstanceOf(Error);
+  });
+
+  test("Gets a Promise rejecting for an invalid FQDN", () => {
+    expect.assertions(1);
+    return expect(getZoneIdByFQDN("")).rejects.toBeInstanceOf(Error);
   });
 });
 
