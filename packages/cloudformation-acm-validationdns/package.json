@@ -14,9 +14,9 @@
     "aws-sdk": "^2.357.0",
     "aws-sdk-mock": "^4.2.0",
     "codecov": "^3.1.0",
-    "eslint": "^5.8.0",
-    "jest": "^23.6.0",
-    "jsdoc-to-markdown": "^4.0.1"
+    "eslint": "^6.0.1",
+    "jest": "^24.8.0",
+    "jsdoc-to-markdown": "^5.0.0"
   },
   "scripts": {
     "doc": "jsdoc2md index.js > TEMP.MD",
