@@ -21,7 +21,7 @@
   },
   "scripts": {
     "package": "sam package && lerna bootstrap && lerna exec 'sam package --template-file $npm_package_config_rawTemplate --s3-bucket $npm_package_config_s3Bucket-$npm_package_config_environment-$awsRegion --output-template-file $npm_package_config_packedTemplate'",
-    "test": "lerna bootstrap && lerna exec 'yarn test'"
+    "test": "lerna bootstrap && lerna exec 'npm test'"
   },
   "devDependencies": {
     "lerna": "^3.4.3"
