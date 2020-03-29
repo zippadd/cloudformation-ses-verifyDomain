@@ -1,6 +1,6 @@
 {
   "name": "cloudformation-ses-verifydomain",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Custom Resource for verifying a domain for AWS SES, including adding the proper DNS records",
   "keywords": [
     "aws",
@@ -23,20 +23,20 @@
   "private": false,
   "devDependencies": {
     "aws-sdk": "^2.357.0",
-    "aws-sdk-mock": "^4.2.0",
-    "codecov": "^3.6.5",
-    "eslint": "^6.0.1",
-    "jest": "^24.8.0",
-    "jsdoc-to-markdown": "^5.0.0"
+    "aws-sdk-mock": "^5.0.0",
+    "codecov": "^3.1.0",
+    "jest": "^25.0.0",
+    "jsdoc-to-markdown": "^5.0.0",
+    "standard": "^14.3.3"
   },
   "scripts": {
     "doc": "jsdoc2md index.js > TEMP.MD",
-    "lint": "eslint . ",
-    "test": "jest --coverage && codecov",
-    "validate": "yarn lint && yarn jest",
+    "lint": "standard .",
+    "test": "npm ci && jest --coverage && codecov",
+    "validate": "npm run lint && npm test",
     "package": "sam package --template-file cf.yml --output-template-file cf-packaged.yml --s3-bucket"
   },
   "dependencies": {
-    "cfn-custom-resource": "^4.0.8"
+    "cfn-custom-resource": "^5.0.0"
   }
 }
