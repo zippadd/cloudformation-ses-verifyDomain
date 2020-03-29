@@ -1,6 +1,6 @@
 {
   "name": "cloudformation-ses-verifydomain",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Custom Resource for verifying a domain for AWS SES, including adding the proper DNS records",
   "keywords": [
     "aws",

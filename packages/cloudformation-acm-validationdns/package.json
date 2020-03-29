@@ -1,6 +1,6 @@
 {
   "name": "cloudformation-acm-validationdns",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Adds the proper DNS entries to Route53 to validate an ACM issued certificate",
   "main": "index.js",
   "author": "John Griepentrog",
