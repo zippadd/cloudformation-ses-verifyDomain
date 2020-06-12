@@ -7,16 +7,16 @@
   "license": "MIT",
   "private": false,
   "dependencies": {
-    "cfn-custom-resource": "^5.0.0",
+    "cfn-custom-resource": "^5.0.7",
     "interval-promise": "^1.3.0"
   },
   "devDependencies": {
-    "aws-sdk": "^2.357.0",
+    "aws-sdk": "^2.695.0",
     "aws-sdk-mock": "^5.0.0",
-    "codecov": "^3.1.0",
-    "jest": "^25.0.0",
-    "jsdoc-to-markdown": "^5.0.0",
-    "standard": "^14.3.3"
+    "codecov": "^3.7.0",
+    "jest": "^26.0.1",
+    "jsdoc-to-markdown": "^6.0.1",
+    "standard": "^14.3.4"
   },
   "scripts": {
     "doc": "jsdoc2md index.js > TEMP.MD",
