@@ -22,10 +22,10 @@
   "license": "MIT",
   "private": false,
   "devDependencies": {
-    "aws-sdk": "^2.897.0",
-    "aws-sdk-mock": "^5.1.0",
-    "codecov": "^3.8.1",
-    "jest": "^26.6.3",
+    "aws-sdk": "^2.973.0",
+    "aws-sdk-mock": "^5.2.2",
+    "codecov": "^3.8.3",
+    "jest": "^27.0.6",
     "jsdoc-to-markdown": "^7.0.1",
     "standard": "^16.0.3"
   },
@@ -37,6 +37,6 @@
     "package": "sam package --template-file cf.yml --output-template-file cf-packaged.yml --s3-bucket"
   },
   "dependencies": {
-    "cfn-custom-resource": "^5.0.7"
+    "cfn-custom-resource": "^5.0.14"
   }
 }
